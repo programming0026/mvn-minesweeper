@@ -1,5 +1,6 @@
 package com.juniverse.game.gui;
 
+import com.juniverse.game.model.MineField;
 import com.juniverse.game.util.MessageUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -24,136 +25,91 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
- * The Class MinesweeperFrame.
- *
  * @author ajuar
  */
 public class MinesweeperFrame extends JFrame {
 
-    /**
-     * The Constant serialVersionUID.
-     */
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The Constant BEGINNER_ROWS.
-     */
     private static final int BEGINNER_ROWS = 8;
 
-    /**
-     * The Constant BEGINNER_COLS.
-     */
     private static final int BEGINNER_COLS = 8;
 
-    /**
-     * The Constant BEGINNER_MINES.
-     */
     private static final int BEGINNER_MINES = 10;
 
-    /**
-     * The Constant INTERMEDIATE_ROWS.
-     */
     private static final int INTERMEDIATE_ROWS = 16;
 
-    /**
-     * The Constant INTERMEDIATE_COLS.
-     */
     private static final int INTERMEDIATE_COLS = 16;
 
-    /**
-     * The Constant INTERMEDIATE_MINES.
-     */
     private static final int INTERMEDIATE_MINES = 40;
 
-    /**
-     * The Constant EXPERT_ROWS.
-     */
     private static final int EXPERT_ROWS = 16;
 
-    /**
-     * The Constant EXPERT_COLS.
-     */
     private static final int EXPERT_COLS = 30;
 
-    /**
-     * The Constant EXPERT_MINES.
-     */
     private static final int EXPERT_MINES = 99;
 
     /**
-     * The rows.
+     * Cantidad de filas.
      */
     private int rows = BEGINNER_ROWS;
 
     /**
-     * The cols.
+     * Cantidad de columnas.
      */
     private int cols = BEGINNER_COLS;
 
     /**
-     * The total mines.
+     * Total de minas del tablero.
      */
     private int totalMines = BEGINNER_MINES;
 
     /**
-     * The flags placed.
+     * Reglas y estado de la partida (sin dependencias de la interfaz).
      */
-    private int flagsPlaced = 0;
+    private MineField field;
 
     /**
-     * The cells revealed.
+     * Indica si ya se mostró el mensaje de fin de partida.
      */
-    private int cellsRevealed = 0;
+    private boolean endShown = false;
 
     /**
-     * The game over.
-     */
-    private boolean gameOver = false;
-
-    /**
-     * The first click.
-     */
-    private boolean firstClick = true;
-
-    /**
-     * The board panel.
+     * Panel del tablero.
      */
     private final JPanel boardPanel = new JPanel();
 
     /**
-     * The status label.
+     * Etiqueta de estado.
      */
     private final JLabel statusLabel = new JLabel("Flags: 0/" + totalMines);
 
     /**
-     * The reset button.
+     * Botón para reiniciar la partida.
      */
     private final JButton resetButton = new JButton();
 
     /**
-     * The timer.
+     * Temporizador.
      */
     private final Timer timer = new Timer(1000, null);
 
     /**
-     * The seconds elapsed.
+     * Segundos transcurridos.
      */
     private int secondsElapsed = 0;
 
     /**
-     * The cells.
+     * Celdas del tablero.
      */
     private CellPanel[][] cells;
 
     /**
-     * The random.
+     * Generador de números aleatorios.
      */
     private final Random random = new Random();
 
-    /**
-     * Instantiates a new minesweeper frame.
-     */
     public MinesweeperFrame() {
         setTitle("Minesweeper");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -165,9 +121,6 @@ public class MinesweeperFrame extends JFrame {
         setVisible(true);
     }
 
-    /**
-     * Inits the menu.
-     */
     private void initMenu() {
         JMenuBar menuBar = new JMenuBar();
         JMenu gameMenu = new JMenu("Game");
@@ -203,9 +156,6 @@ public class MinesweeperFrame extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    /**
-     * Inits the game.
-     */
     private void initGame() {
         JPanel controlPanel = new JPanel(new BorderLayout());
 
@@ -237,39 +187,38 @@ public class MinesweeperFrame extends JFrame {
     }
 
     /**
-     * Setup board.
+     * Prepara el tablero.
      */
     private void setupBoard() {
         boardPanel.removeAll();
         boardPanel.setLayout(new GridLayout(rows, cols));
 
         cells = new CellPanel[rows][cols];
-        flagsPlaced = 0;
-        cellsRevealed = 0;
-        gameOver = false;
-        firstClick = true;
+        field = new MineField(rows, cols, totalMines, random);
+        endShown = false;
         secondsElapsed = 0;
         timer.stop();
 
         MouseAdapter mouseHandler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (gameOver) {
+                if (field.isFinished()) {
                     return;
                 }
 
                 CellPanel cell = (CellPanel) e.getSource();
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     if (!cell.isFlagged() && !cell.isRevealed()) {
+                        boolean firstClick = field.state() == MineField.State.READY;
+                        field.reveal(cell.getRow(), cell.getCol());
                         if (firstClick) {
-                            placeMines(cell.getRow(), cell.getCol());
-                            firstClick = false;
                             timer.start();
                         }
-                        revealCell(cell);
+                        refresh();
                     }
                 } else if (SwingUtilities.isRightMouseButton(e)) {
-                    toggleFlag(cell);
+                    field.toggleFlag(cell.getRow(), cell.getCol());
+                    refresh();
                 }
             }
         };
@@ -289,159 +238,47 @@ public class MinesweeperFrame extends JFrame {
     }
 
     /**
-     * Place mines.
-     *
-     * @param firstRow the first row
-     * @param firstCol the first col
+     * Sincroniza las celdas con el modelo y atiende el fin de la partida.
      */
-    private void placeMines(int firstRow, int firstCol) {
-        int minesPlaced = 0;
-        while (minesPlaced < totalMines) {
-            int r = random.nextInt(rows);
-            int c = random.nextInt(cols);
-
-            if ((r == firstRow && c == firstCol) || cells[r][c].isMine()) {
-                continue;
-            }
-
-            cells[r][c].setMine(true);
-            minesPlaced++;
-
-            for (int dr = -1; dr <= 1; dr++) {
-                for (int dc = -1; dc <= 1; dc++) {
-                    int nr = r + dr;
-                    int nc = c + dc;
-                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                        cells[nr][nc].incrementAdjacentMines();
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Reveal cell.
-     *
-     * @param cell the cell
-     */
-    private void revealCell(CellPanel cell) {
-        if (cell.isRevealed() || cell.isFlagged()) {
-            return;
-        }
-
-        cell.reveal();
-        cellsRevealed++;
-
-        if (cell.isMine()) {
-            gameOver();
-            return;
-        }
-
-        if (cellsRevealed == rows * cols - totalMines) {
-            gameWon();
-            return;
-        }
-
-        if (cell.getAdjacentMines() == 0) {
-            revealAdjacentCells(cell.getRow(), cell.getCol());
-        }
-
-        updateStatus();
-    }
-
-    /**
-     * Reveal adjacent cells.
-     *
-     * @param row the row
-     * @param col the col
-     */
-    private void revealAdjacentCells(int row, int col) {
-        for (int dr = -1; dr <= 1; dr++) {
-            for (int dc = -1; dc <= 1; dc++) {
-                int nr = row + dr;
-                int nc = col + dc;
-                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                    CellPanel adjCell = cells[nr][nc];
-                    if (!adjCell.isRevealed() && !adjCell.isFlagged()) {
-                        revealCell(adjCell);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Toggle flag.
-     *
-     * @param cell the cell
-     */
-    private void toggleFlag(CellPanel cell) {
-        if (cell.isRevealed() || gameOver) {
-            return;
-        }
-
-        if (cell.isFlagged()) {
-            cell.removeFlag();
-            flagsPlaced--;
-        } else if (flagsPlaced < totalMines) {
-            cell.setFlag();
-            flagsPlaced++;
-        }
-
-        updateStatus();
-    }
-
-    /**
-     * Game over.
-     */
-    private void gameOver() {
-        gameOver = true;
-        timer.stop();
-        resetButton.setIcon(new SmileyIcon(SmileyIcon.DEAD));
-
+    private void refresh() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 CellPanel cell = cells[r][c];
-                if (cell.isMine() && !cell.isFlagged()) {
+                cell.setMine(field.isMine(r, c));
+                cell.setAdjacentMines(field.adjacentMines(r, c));
+                if (field.isFlagged(r, c) && !cell.isFlagged()) {
+                    cell.setFlag();
+                } else if (!field.isFlagged(r, c) && cell.isFlagged()) {
+                    cell.removeFlag();
+                }
+                if (field.isRevealed(r, c) && !cell.isRevealed()) {
                     cell.reveal();
                 }
             }
         }
-
-        MessageUtil.showInfo("You've lost!", "Game Over");
-    }
-
-    /**
-     * Game won.
-     */
-    private void gameWon() {
-        gameOver = true;
-        timer.stop();
-        resetButton.setIcon(new SmileyIcon(SmileyIcon.WIN));
-
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                CellPanel cell = cells[r][c];
-                if (cell.isMine() && !cell.isFlagged()) {
-                    cell.setFlag();
-                    flagsPlaced++;
-                }
+        updateStatus();
+        if (field.isFinished() && !endShown) {
+            endShown = true;
+            timer.stop();
+            if (field.state() == MineField.State.LOST) {
+                resetButton.setIcon(new SmileyIcon(SmileyIcon.DEAD));
+                MessageUtil.showInfo("You've lost!", "Game Over");
+            } else {
+                resetButton.setIcon(new SmileyIcon(SmileyIcon.WIN));
+                MessageUtil.showInfo("You've won!", "Congratulations");
             }
         }
-
-        updateStatus();
-        MessageUtil.showInfo("You've won!", "Congratulations");
     }
 
     /**
-     * Update status.
+     * Actualiza el estado.
      */
     private void updateStatus() {
-        statusLabel.setText("Flags: " + flagsPlaced + "/" + totalMines + " | Time: " + secondsElapsed + "s");
+        statusLabel.setText("Flags: " + field.flagCount() + "/" + totalMines + " | Time: " + secondsElapsed + "s");
     }
 
     /**
-     * Reset game.
+     * Reinicia la partida.
      */
     private void resetGame() {
         setupBoard();
@@ -449,11 +286,11 @@ public class MinesweeperFrame extends JFrame {
     }
 
     /**
-     * Sets the difficulty.
+     * Establece la dificultad.
      *
-     * @param rows the rows
-     * @param cols the cols
-     * @param mines the mines
+     * @param rows filas
+     * @param cols columnas
+     * @param mines cantidad de minas
      */
     private void setDifficulty(int rows, int cols, int mines) {
         this.rows = rows;
@@ -463,7 +300,7 @@ public class MinesweeperFrame extends JFrame {
     }
 
     /**
-     * About.
+     * Muestra el cuadro «Acerca de».
      */
     private void about() {
         AboutDialog aboutDialog = new AboutDialog(this);

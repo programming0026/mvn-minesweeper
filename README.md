@@ -76,13 +76,23 @@ mvn clean compile exec:java
 ```text
 src/main/java/com/juniverse/game/
 ├── Main.java
+├── model/
+│   └── MineField.java         # reglas del juego (minas, banderas, victoria y derrota), sin interfaz
 ├── gui/
-│   ├── MinesweeperFrame.java  # ventana y lógica del juego
+│   ├── MinesweeperFrame.java  # ventana: dibuja las casillas y atiende el ratón
 │   ├── CellPanel.java         # casilla del tablero
 │   ├── SmileyIcon.java        # carita del estado
 │   └── AboutDialog.java
 └── util/                      # fechas, iconos y mensajes
 ```
+
+## Pruebas
+
+```bash
+mvn test
+```
+
+Las reglas están separadas de la ventana en `MineField`, por eso se prueban sin abrir ninguna interfaz gráfica.
 
 ## Licencia
 

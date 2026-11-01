@@ -8,40 +8,25 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 
 /**
- * The Record SmileyIcon.
- *
  * @author ajuar
- * @param state the state
  */
 public record SmileyIcon(int state) implements Icon {
 
     private static final Logger log = Logger.getLogger(SmileyIcon.class.getName());
-    /**
-     * The Constant SIZE.
-     */
     public static final int SIZE = 40;
 
-    /**
-     * The Constant NORMAL.
-     */
     public static final int NORMAL = 0;
 
-    /**
-     * The Constant WIN.
-     */
     public static final int WIN = 1;
 
-    /**
-     * The Constant DEAD.
-     */
     public static final int DEAD = 2;
 
     /**
-     * Paint icon.
+     * Pinta el icono.
      *
-     * @param c the c
-     * @param g the g
-     * @param x the x
+     * @param c componente
+     * @param g contexto gráfico
+     * @param x coordenada x
      * @param y the y
      */
     @Override
@@ -99,9 +84,9 @@ public record SmileyIcon(int state) implements Icon {
     }
 
     /**
-     * Gets the icon width.
+     * Obtiene el ancho del icono.
      *
-     * @return the icon width
+     * @return ancho del icono
      */
     @Override
     public int getIconWidth() {
@@ -109,9 +94,9 @@ public record SmileyIcon(int state) implements Icon {
     }
 
     /**
-     * Gets the icon height.
+     * Obtiene el alto del icono.
      *
-     * @return the icon height
+     * @return alto del icono
      */
     @Override
     public int getIconHeight() {

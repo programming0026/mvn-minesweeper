@@ -10,59 +10,36 @@ import java.io.Serial;
 import javax.swing.JPanel;
 
 /**
- * The Class CellPanel.
- *
  * @author ajuar
  */
 public class CellPanel extends JPanel {
 
-    /**
-     * The Constant serialVersionUID.
-     */
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * The row.
+     * Fila.
      */
     private final int row;
 
     /**
-     * The col.
+     * Columna.
      */
     private final int col;
 
-    /**
-     * The is mine.
-     */
     private boolean isMine = false;
 
-    /**
-     * The is revealed.
-     */
     private boolean isRevealed = false;
 
-    /**
-     * The is flagged.
-     */
     private boolean isFlagged = false;
 
     /**
-     * The adjacent mines.
+     * Cantidad de minas en las celdas vecinas.
      */
     private int adjacentMines = 0;
 
-    /**
-     * The exploded.
-     */
     private boolean exploded = false;
 
-    /**
-     * Instantiates a new cell panel.
-     *
-     * @param row the row
-     * @param col the col
-     */
     public CellPanel(int row, int col) {
         this.row = row;
         this.col = col;
@@ -71,77 +48,54 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Sets the mine.
+     * Marca o desmarca la celda como mina.
      *
-     * @param isMine the new mine
+     * @param isMine {@code true} si la celda tiene mina
      */
     public void setMine(boolean isMine) {
         this.isMine = isMine;
     }
 
-    /**
-     * Checks if is mine.
-     *
-     * @return true, if is mine
-     */
     public boolean isMine() {
         return isMine;
     }
 
     /**
-     * Increment adjacent mines.
+     * Establece la cantidad de minas vecinas.
+     *
+     * @param adjacentMines minas en las celdas vecinas
      */
-    public void incrementAdjacentMines() {
-        adjacentMines++;
+    public void setAdjacentMines(int adjacentMines) {
+        this.adjacentMines = adjacentMines;
     }
 
     /**
-     * Gets the adjacent mines.
+     * Obtiene la cantidad de minas vecinas.
      *
-     * @return the adjacent mines
+     * @return minas en las celdas vecinas
      */
     public int getAdjacentMines() {
         return adjacentMines;
     }
 
-    /**
-     * Gets the row.
-     *
-     * @return the row
-     */
     public int getRow() {
         return row;
     }
 
-    /**
-     * Gets the col.
-     *
-     * @return the col
-     */
     public int getCol() {
         return col;
     }
 
-    /**
-     * Checks if is revealed.
-     *
-     * @return true, if is revealed
-     */
     public boolean isRevealed() {
         return isRevealed;
     }
 
-    /**
-     * Checks if is flagged.
-     *
-     * @return true, if is flagged
-     */
     public boolean isFlagged() {
         return isFlagged;
     }
 
     /**
-     * Reveal.
+     * Descubre la celda.
      */
     public void reveal() {
         if (isRevealed) {
@@ -156,7 +110,7 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Sets the flag.
+     * Coloca la bandera.
      */
     public void setFlag() {
         isFlagged = true;
@@ -164,7 +118,7 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Removes the flag.
+     * Quita la bandera.
      */
     public void removeFlag() {
         isFlagged = false;
@@ -172,9 +126,9 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Paint component.
+     * Pinta el componente.
      *
-     * @param g the g
+     * @param g contexto gráfico
      */
     @Override
     protected void paintComponent(Graphics g) {
@@ -216,9 +170,9 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Draw mine.
+     * Dibuja la mina.
      *
-     * @param g the g
+     * @param g contexto gráfico
      */
     private void drawMine(Graphics g) {
         g.setColor(Color.BLACK);
@@ -244,9 +198,9 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Draw flag.
+     * Dibuja la bandera.
      *
-     * @param g the g
+     * @param g contexto gráfico
      */
     private void drawFlag(Graphics g) {
         int poleX = getWidth() / 3;
@@ -263,9 +217,9 @@ public class CellPanel extends JPanel {
     }
 
     /**
-     * Draw number.
+     * Dibuja el número de minas vecinas.
      *
-     * @param g the g
+     * @param g contexto gráfico
      */
     private void drawNumber(Graphics g) {
         String number = String.valueOf(adjacentMines);
