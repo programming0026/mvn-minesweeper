@@ -25,7 +25,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
- * @author ajuar
+ * @author Java Universe
  */
 public class MinesweeperFrame extends JFrame {
 

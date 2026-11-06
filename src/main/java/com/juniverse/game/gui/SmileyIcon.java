@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 
 /**
- * @author ajuar
+ * @author Java Universe
  */
 public record SmileyIcon(int state) implements Icon {
 

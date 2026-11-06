@@ -10,7 +10,7 @@ import java.io.Serial;
 import javax.swing.JPanel;
 
 /**
- * @author ajuar
+ * @author Java Universe
  */
 public class CellPanel extends JPanel {
 
